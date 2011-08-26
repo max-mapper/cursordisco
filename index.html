@@ -1,0 +1,88 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>cursor disco!</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="http://code.jquery.com/jquery-1.6.2.min.js"></script>
+  <script type='text/javascript'>
+    function ratelimit(fn, ms) {
+      var last = (new Date()).getTime();
+      return (function() {
+        var now = (new Date()).getTime();
+        if (now - last > ms) {
+          last = now;
+          fn.apply(null, arguments);
+        }
+      });
+    }
+
+    function move(mouse) {
+      if($('#mouse_'+mouse['id']).length == 0) {
+        $('body').append('<span class="mouse" id="mouse_'+mouse['id']+'"><span style="display:none;" class="chat"/></span>');
+      }
+      $('#mouse_'+mouse['id']).css({
+        'left' : (($(window).width() - mouse['w']) / 2 + mouse['x']) + 'px',
+        'top' : mouse['y'] + 'px'
+      })
+    };
+
+    $(document).mousemove(
+      ratelimit(function(e){
+        socket.emit('move', {
+          x: e.pageX,
+          y: e.pageY,
+          w: $(window).width(),
+          h: $(window).height()
+        })
+      }, 40)
+    );
+
+    var socket = io.connect('http://localhost');
+
+    socket.on('move', function (data) {
+      move(data);
+    });
+    
+    socket.on('close', function (data) {
+      $('#mouse_'+data['id']).remove();
+    });    
+  
+  </script>
+  <style type="text/css">
+  body { background-color: #0099FF; cursor: none}
+  .discoParty { font-family: "Times New Roman"; width: 200px; margin: 100px auto 0px auto; text-align: center}
+  .discoParty span { font-size: 21px;display: block;margin: 0px}
+  .discoParty img { position: relative; top: -5px}
+  .mouse {
+    position: absolute;
+    background-repeat: no-repeat;
+    height: 22px;
+    min-width: 15px;
+    z-index: 100;
+  }
+
+  .mouse{
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAVCAYAAAByrA+0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6RjRBM0QwNjVDODIwMTFFMEFCMThBQ0VFRDk2NkU2M0UiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6RjRBM0QwNjZDODIwMTFFMEFCMThBQ0VFRDk2NkU2M0UiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpGNEEzRDA2M0M4MjAxMUUwQUIxOEFDRUVEOTY2RTYzRSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpGNEEzRDA2NEM4MjAxMUUwQUIxOEFDRUVEOTY2RTYzRSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PvF7x80AAAEbSURBVHjajFPBDsFAEJ3dNpE4UW6a4D9IuDkSnPFnEm51cPMBDv0Jh4a6ERFuytqZbmllW33JpJ3pvn2zb6dgVOqOEALyBpcBZrXpQF4YVqjArXxKoFryMTEqDae7vLNsgvUh+MFL7JDUWdzYP0ICWEsjURtCA2xVR4rOoAXXKEXuiCxS3IjUlpLtfY34q/BLYuhIcPZGukstt2cDALkrMMoLln0wgVFyjBYxxmokTRBw2c7X8U349yPYUtaVrq2yZ0lNa/RER2SZbr63CnipNeknphXUtAYnb0xNhGQXFTdDY586rb+h7PZ7zkOqTD8qqVOpCPju5yLEzqVUwrPw7N+LLLc3I/NlFktXqsRs1QINwTXPc2jKW4ABAO71Bt8KW8LXAAAAAElFTkSuQmCC');
+  }
+
+
+  span.mouse img, span#preview img{
+    padding: 0 5px;
+    float:left;
+    margin: 0 -15px 0 15px;
+    width: 20px;
+    height: 20px;
+  }
+
+  </style>
+</head>
+<body>
+  <div class="discoParty">
+    <span>CURSOR DISCO! JOIN IN!</span>
+    <img width=75 src="http://upload.wikimedia.org/wikipedia/commons/8/84/Disco_ball.gif">
+  </div>
+</body>
+</html>
